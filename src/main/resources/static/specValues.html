@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SpecValue</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+
+<label for="name">specValue</label><br>
+<input type="text" id="name" name="name" placeholder="Name specValue"><br>
+<label for="spec">specValue</label><br>
+<select id="spec"></select><br>
+<input type="button" id="btnCreateSpecValue" value="Create">
+
+
+<table id="specValues">
+    <tr>
+        <th>Name specification</th>
+        <th>DELETE</th>
+    </tr>
+</table>
+
+<script>
+
+    var mainUrl = "http://localhost:8080";
+
+    getAllSpec();
+    getAllSpecValue();
+    setCreateBtn();
+
+    function getAllSpecValue() {
+        $.ajax({
+            url: mainUrl + "/specValue",
+            type: "GET",
+            contentType: "application/json",
+            success: function (specValueResponse) {
+                setSpecValuesToTable(specValueResponse);
+                setActionOnDeleteButtons();
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        });
+    }
+
+    function setSpecValuesToTable(specValues) {
+        for (var i = 0; i < specValues.length; i++) {
+            setSpecValueToTable(specValues[i]);
+        }
+    }
+
+    function setSpecValueToTable(specValue) {
+        var tableOfSpecValues = $("#specValues");
+        tableOfSpecValues.append('<tr>' +
+            '<td>' + specValue.specResponse.name + specValue.value + '</td>' +
+            '<td><button class="button" value="' + specValue.id + '">Видалити</button></td>' +
+            '</tr>');
+    }
+
+    function setActionOnDeleteButtons() {
+        $(".button").click(function () {
+            $.ajax({
+                url: mainUrl + "/specValue?id=" + $(this).val(),
+                type: "DELETE",
+                success: function () {
+                    location.reload();
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            });
+        })
+
+
+    }
+
+    function setCreateBtn() {
+        $("#btnCreateSpecValue").click(function () {
+
+            var name = $("#name").val();
+            var spec = $("#spec").val();
+
+            var newSpecValue = {
+                "name": name,
+                "specId": spec
+            };
+
+            $.ajax({
+                url: mainUrl + "/specValue",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(newSpecValue),
+                success: function (data) {
+                    location.reload();
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            });
+        });
+    }
+
+    function getAllSpec() {
+        $.ajax({
+            url: mainUrl + "/spec",
+            type: 'GET',
+            success: (specs) => {
+                var $spec = $('#spec');
+                for (var i = 0; i < specs.length; i++) {
+                    $spec.append(`<option value="${specs[i].id}">${specs[i].name}</option>`);
+                }
+            },
+            error: (e) => {
+                console.log(e)
+            }
+        });
+    }
+
+
+</script>
+</body>
+</html>

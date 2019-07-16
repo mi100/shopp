@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spec</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+
+<label for="name">specification</label><br>
+<input type="text" id="name" name="name" placeholder="Name specification"><br>
+<label for="subCategory">subCategories</label><br>
+<select id="subCategory"></select><br>
+<input type="button" id="btnCreateSpec" value="Create">
+
+
+<table id="specs">
+    <tr>
+        <th>Name specification</th>
+        <th>DELETE</th>
+    </tr>
+</table>
+
+<script>
+
+    var mainUrl = "http://localhost:8080";
+
+    getAllSpec();
+    getAllSubcategory();
+    setCreateBtn();
+
+    function getAllSpec() {
+        $.ajax({
+            url: mainUrl + "/spec",
+            type: "GET",
+            contentType: "application/json",
+            success: function (specResponse) {
+                setSpecsToTable(specResponse);
+                setActionOnDeleteButtons();
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        });
+    }
+
+    function setSpecsToTable(specs) {
+        for (var i = 0; i < specs.length; i++) {
+            setSpecToTable(specs[i]);
+        }
+    }
+
+    function setSpecToTable(spec) {
+        var tableOfSpecs = $("#specs");
+        tableOfSpecs.append('<tr>' +
+            '<td>' + spec.name + '</td>' +
+            '<td><button class="button" value="' + spec.id + '">Видалити</button></td>' +
+            '</tr>');
+    }
+
+    function setActionOnDeleteButtons() {
+        $(".button").click(function () {
+            $.ajax({
+                url: mainUrl + "/spec?id=" + $(this).val(),
+                type: "DELETE",
+                success: function () {
+                    location.reload();
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            });
+        })
+
+
+    }
+
+    function setCreateBtn() {
+        $("#btnCreateSpec").click(function () {
+
+            var name = $("#name").val();
+            // var subCategory = $("#subCategory").val();
+
+            var newSpec = {
+                "name": name,
+                // "subCategoryId": subCategory
+            };
+
+            $.ajax({
+                url: mainUrl + "/spec",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(newSpec),
+                success: function (data) {
+                    location.reload();
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            });
+        });
+    }
+
+    function getAllSubcategory() {
+        $.ajax({
+            url: mainUrl + "/subCategory",
+            type: 'GET',
+            success: (subCategories) => {
+                var $subCategory = $('#subCategory');
+                for (var i = 0; i < subCategories.length; i++) {
+                    $subCategory.append(`<option value="${subCategories[i].id}">${subCategories[i].name}</option>`);
+                }
+            },
+            error: (e) => {
+                console.log(e)
+            }
+        });
+    }
+
+
+</script>
+</body>
+</html>

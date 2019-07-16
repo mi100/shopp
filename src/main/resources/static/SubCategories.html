@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SubCategories</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    
+</head>
+<body>
+    
+<div class="create-container">
+    <input type="text" placeholder="Name" id="name" >
+    <select type="categoryId" id="category">
+
+    </select>
+    
+    <button id="create">create</button>
+    <button id="update">update</button>
+</div>
+      
+    <script>
+    $('#create').click(() => {
+        let $name = $('#name');
+        let $category = $('#category');
+    
+        let request = {
+            name: $name.val(),
+            categoryId: $category.val(),
+
+        };
+
+        $.ajax({
+            url:    'http://localhost:8080/subCategories',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(request),
+            success: (response) => {
+                console.log(response)
+            }
+        })
+    })
+</script>
+
+    <table id="subCategories">
+        <tr>
+            <th>Name</th>
+            
+            <th>Delete Button</th>
+         </tr>
+     </table>
+    
+    
+<script>
+        var mainUrl = "http://localhost:8080";
+
+        getAllCategory();
+        setActionOnDeleteButtons();
+getAllSubcategory();
+
+        function getAllCategory() {
+            $.ajax({
+                url: mainUrl + "/category",
+                type: "GET",
+                contentType: "application/json",
+                success: function (categoryResponse) {
+                    setCategoriesToTable(categoryResponse);
+                    setActionOnDeleteButtons();
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            });
+        }
+
+        function getAllSubcategory() {
+            $.ajax({
+                url: mainUrl + "/subCategories",
+                type: "GET",
+                contentType: "application/json",
+                success: function (subcategories) {
+                    for (let i = 0; i < subcategories.length; i++) {
+                        setSubCategoryToTable(subcategories[i])
+                    }
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            });
+        }
+
+        function setCategoriesToTable(category) {
+            for (var i = 0; i < category.length; i++) {
+                setCategoryToTable(category[i]);
+            }
+        }
+
+    function setCategoryToTable(category) {
+            console.log(category)
+        var tableOfCategory = $("#category");
+        tableOfCategory.append('<option value="' + category.id + '">' +  category.name + '</option>');
+    }
+    
+    ////поверненя підкатегорі/////////
+    function setSubCategoryToTable(subCategory){
+        var tableOfSubCategory = $("#subCategories");
+        tableOfSubCategory.append('<tr>' + '<td>' + subCategory.name + '</td>' + '<td><button class="button" value="' + subCategory.id + '">Delete</button></td>' + '</tr>');
+    }
+    
+    function setActionOnDeleteButtons() {
+        $(".button").click(function () {
+            $.ajax({
+                url: mainUrl + "/subCatrgories&id=" + $(this).val(),
+                type: "DELETE",
+                success: function () {
+                    location.reload();
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            });
+        })
+    }
+    
+    function setCreateBtn() {
+    $("#btnCreatesubCategories").click(function () {
+
+        var name = $("#name").val();
+
+        var newsubCategories = {
+            "name": name,
+
+        };
+
+        $.ajax({
+            url: mainUrl + "/subCategories&id=",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(newsubCategories),
+            success: function (subCategories) {
+                location.reload();
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        });
+    });
+    }
+
+        
+        
+        
+</script>
+    
+
+    
+
+</body>
+</html>

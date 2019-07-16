@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Category</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+   
+   <div><h2>Create Category</h2></div>
+   
+   <div>
+       <input type="text" id="name" name="name" placeholder="Name Category"><br>
+       <input type="button" id="btnCreateCategory" value="Create">
+       <input type="button" id="btnUpdateCategory" value="Update">
+   </div>
+
+   <script>
+       $('#create').click(() => {
+           let $name = $('#name');
+           let $category = $('#category');
+
+           let request = {
+               name: $name.val(),
+               categoryId: $category.val(),
+
+           };
+
+           $.ajax({
+               url: 'http://localhost:8080/category',
+               type: 'POST',
+               contentType: 'application/json',
+               data: JSON.stringify(request),
+               success: (response) => {
+                   console.log(response)
+               }
+           })
+       })
+   </script>
+   
+   
+   <table id="Categories">
+       <tr>
+           <th>Name Category</th>
+           <th>Delete Category</th>
+           
+       </tr>
+       
+   </table>
+   
+<script>
+
+     var mainUrl = "http://localhost:8080";
+
+    getAllCategory();
+    setActionOnCreateBtn();
+
+    function getAllCategory() {
+        $.ajax({
+            url: mainUrl + "/category",
+            type: "GET",
+            contentType: "application/json",
+            success: function (categoryResponse) {
+                setCategoriesToTable(categoryResponse);
+                setActionOnDeleteButtons();
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        });
+    }
+
+    function setCategoriesToTable(categories) {
+        for (var i = 0; i < categories.length; i++) {
+            setCategoryToTable(categories[i]);
+        }
+    }
+
+    function setCategoryToTable(category) {
+        var tableOfCategory = $("#Categories");
+        tableOfCategory.append('<tr>' +
+            '<td>' + category.name + '</td>' +
+            '<td><button class="button" value="' + category.id + '">Видалити</button></td>' +
+            '</tr>');
+    }
+
+    function setActionOnDeleteButtons() {
+        $(".button").click(function () {
+            $.ajax({
+                url: mainUrl + "/category/?id=" + $(this).val(),
+                type: "DELETE",
+                success: function () {
+                    location.reload();
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            });
+        })
+
+
+    }
+    function setActionOnCreateBtn() {
+    $("#btnCreateCategory").click(function () {
+
+        var name = $("#name").val();
+
+        var newCategory = {
+            "name": name,
+
+        };
+
+        $.ajax({
+            url: mainUrl + "/category",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(newCategory),
+            success: function (category) {
+                location.reload();
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        });
+    });
+    }
+
+</script>   
+
+
+
+    
+</body>
+</html>

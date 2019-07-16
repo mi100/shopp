@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shop</title>
+</head>
+<body>
+
+<div class="create-container">
+    <input type="text" placeholder="Name" id="name">
+    <input type="number" placeholder="Price" id="price">
+    <select type="productId" id="product">
+        <option value="Phone">Phone</option> >
+        <option value="Accessories">Accessories</option> >
+        <option value="Watch">Watch</option> >
+        <option value="Headphone">Headphone</option> >
+        <option value="Tablet">Tablet</option> >
+    </select>
+    <button id="create">create</button>
+</div>
+
+<script>
+    $('#create').click(() => {
+        let $name = $('#name');
+    let $price = $('#price');
+    let $product = $('#product');
+
+    let request = {
+        name: $name.val(),
+        price: $price.val(),
+        productId: $product.val(),
+    };
+
+    $.ajax({
+        url: 'http://localhost:8080/product',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(request),
+        success: (response) => {
+        console.log(response)
+    }
+    })
+    })
+</script>
+<p>
+<div class="delete-container">
+
+    <table id="user">
+        <tr>
+            <th>Login</th>
+            <th>Phone Number</th>
+            <th>Age</th>
+            <th>Delete Button</th>
+        </tr>
+    </table>
+
+</div>
+
+</p>
+<script>
+    var mainUrl = "http://localhost:8080";
+
+    getAllUser();
+
+
+    //start when load page PS reload page for triggered http request
+    function getAllUser() {
+        $.ajax({
+            url: mainUrl + "/person?page=0&size=10&sortFieldName=firstName&direction=ASC",
+            type: "GET",
+            contentType: "application/json",
+            success: function (dataResponse) {
+                setUserToTable(dataResponse.data);
+                setActionOnDeleteButtons();
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        });
+    }
+
+    function setUserToTable(user) {
+        for (var i = 0; i < user.length; i++) {
+            setUserToTable(user[i]);
+        }
+    }
+
+    function setUserToTable(user) {
+        var tableOfUser = $("#user");
+        tableOfUser.append('<tr>' +
+            '<td>' + user.login + '</td>' +
+            '<td>' + user.phoneNumber + '</td>' +
+            '<td>' + user.age + '</td>' +
+            '<td><button class="button" value="' + user.id + '">Delete</button></td>' +
+            '</tr>');
+    }
+
+    //delete process
+    function setActionOnDeleteButtons() {
+        $(".button").click(function () {
+            $.ajax({
+                url: mainUrl + "/user" + $(this).val(),
+                type: "DELETE",
+                success: function () {
+                    location.reload();
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            });
+        })
+
+
+    }
+</script>
+<p>
+<div class="uploaded-images">
+
+    <input type="file" id="getFile">
+    <input type="button" value="Send" id="sendFile">
+</div>
+</p>
+<script>
+    function getBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+    }
+
+    document.getElementById("sendFile").onclick = function(){
+        var file = document.getElementById("getFile").files[0];
+        getBase64(file).then(data => {
+
+            let request = {
+                data: data
+            }
+            $.ajax({
+                url: "http://localhost:8080/upload",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(request),
+                success: function (data) {
+                    addImgToContainer(data);
+                },
+                error: function (error) {
+                    alert(error.message);
+                }
+            });
+    });
+    };
+
+    function addImgToContainer(fileName) {
+        let img = document.createElement('img');
+        img.setAttribute('src', '/img/' + fileName);
+        document.getElementById('uploaded-images').appendChild(img);
+    }
+</script>
+<div class="filter">
+    <select id="pageSize">
+        <option value="6">6</option>
+        <option value="12">12</option>
+    </select>
+    <input type="text" id="page" value="1">
+
+    <select id="sortBy">
+        <option value="name">Name</option>
+        <option value="price">Price</option>
+    </select>
+
+</div>
+<style>
+    .container{
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+    }
+
+    .product {
+        width: 31%;
+    }
+
+    .product-img{
+        width: 100%;
+    }
+</style>
+<div class="container">
+
+</div>
+
+<script>
+    const $container = $('.container');
+    const $page = $('#page');
+    const $size = $('#pageSize');
+    const $sortBy = $('#sortBy');
+
+    getPageOfProduct();
+    $page.change(getPageOfProduct);
+    $size.change(getPageOfProduct);
+    $sortBy.change(getPageOfProduct);
+
+
+    function getPageOfProduct() {
+        const request = {
+            page: $page.val();
+            size: $size.val();
+            sortRequest: {
+                direction: 'ASC',
+                field: $sortBy.val()
+            }
+        };
+
+
+
+        $.ajax({
+            url: 'http://localhost:/product/page',
+            type: 'post',
+            data: JSON.stringify(request),
+            contentType: 'application/json',
+            success: function (page) {
+                var product = page.content;
+                $container.html('');
+                for (let i= 0; i < product.length; i++ ) {
+                    addProductToCatalog(product[i]);
+                }
+
+            }
+         });
+    }
+
+    function addProductToCatalog(product) {
+        $container.append(`
+            <div class="product">
+                <h3>${product}</h3>h3>
+                <img class="product-img" src="${product.pathToImage ? 'http://localhost:8080/img/' + product.pathToImage : data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAflBMVEUAAAD////6+vpvb28TExOGhoZZWVl4eHjX19fU1NTl5eWWlpaMjIwEBATg4ODs7OzLy8uysrLw8PDFxcW+vr6ZmZlgYGDNzc03NzccHBx/f3+oqKgqKipHR0dAQEANDQ1paWkYGBhQUFC2trZcXFwvLy+hoaFFRUUlJSUtLS3ygN0iAAAEfElEQVR4nO3Y6XKjOBSGYQResQ0YSLwvcZZ27v8GB0kgjrB7OmNTU9VV7/MngWBZHzoSIkEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/K8WPXzugTYe/dqfmLz5x6Oo/X39NQmVyrOZ+HukrHAqz355bRzH4mBe5NXVk91aXvGiPKU9Oy7T6iBZjh6PcytWsXd8UK53x2nbhfdNczYSHRs2J6dJ28Ii+FRzd7Brr54c3DVffsB3c3IWuhPpua98p6RqrhAnLsolnHmdeLmXsEmyUlPRxmfooo9yr5FmpO8F/E7ujeqzNhPvi6uAoUtob36YZNNYBjQJk6IobIfWNqBMuM7d4J5tb+NVloRisLZprOnmqx+pObm2F6TTLLF3Rd6zx33UN8wV5os7mJt8s0/9+6HU9+BwcQnNDDyHdfKB35+ZK9+jHQ3zub2tQTlfQ/kxE2v1qn992+rwXmk9bFQnDC+idybhpz6dyMVhncYuoR1RPcrZbcK5S6iHOXQL19WM+sVdN6gSTpqDUtR8c7jtKaG5tfm1k7DQFbMRl67Tut9twqGyXfxdwrFu+dz+4aQXytXdhAfVVEZNL3LxqZ+Eu8IMl5/wrdM5O2CJn3BZl9LvEupJvux+ndrfS7jsTrzTTQceMzJ9EFXfJBy2oWtXfdF3IOZh1Nz3TsJhk1AXyNFrZCpHSibMb/Is+1lPbcJ97mqkSbjrFE3du6gOFmdZlpoZfK0T5kXWSOqErzd3yQyv67ZIqBfS8LZrk+BpNmG94EQiYXE70ct6KfCeh+aagbqhE25v18OznIgi4UXPev/SvT71/ESsE5rOmAX1vyXM7YPlb0hoNxnp1SVc/nuV5tWDOsm29VqrE4ZJ3MjrhOenqvTSa5UGdtCq5aJJOL9pf6OfKuugWUsX4mXArjSLmltLTXBvu603P+3uqLvSvHqX7m4r4LmE5umslvM6oa4R/yv1bsc88iPZS5HQcU8L3eROXmieei6zTPguy9cIldhqPU4kPJknf9y0u+qUqdmAuYfEzxLqx4bYw9jIbWXIhCO3bNV0TeWd97pHiIT2Bqsm4dqPcQzdxP95wiBVYkNodwCqffXzdm2Z8sZMj6nYxD1OJ3xvDsYyYfCl98jHrQl1tW87tmrvJxSTdu46dzEf25kd4Wlsnrqiar2EtoRKu0F4NVPGr9onErav9Pa9O28Xh2ovmq/KYto+AeqE/jv4wM88bweuvmnTolzZVyK5duiEbeBf9u1pUpSZ2WOppIcaNQll8Zf+6ndIVStsLoy6q55OKAd1LiozCpXk7VKrhO3xwv+26l70sO0O9Puh/1ifeBvJkXjrLlzwqBuwSuhV7UyuLp9l20Zy7nxs6R/vxH8xhkE/PjoNfSe/vOPRu343Dyc7kfscBR17/99Qww/vcP011T1Pyu6Nue46J4L93BRzXIz7GcCfGWw2f/q6P/4n8LTZDH74scVm08v8AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD87f4B3dsxKFxtLZUAAAAASUVORK5CYII=}">
+                <div>
+                    ${product.price}
+                </div>
+             </div>
+        `);
+
+    }
+</script>
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+</body>
+</html>
